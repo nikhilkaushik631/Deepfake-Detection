@@ -112,7 +112,8 @@ The system includes a Streamlit web interface that:
 - F1-Score: ~95%
 - Real-time processing capability
 - Robust to various video qualities
-
+![alt text](Accuracy.png)
+![alt text](Loss.png)
 ## Limitations
 - Requires clear facial visibility
 - Sensitive to extreme lighting conditions
