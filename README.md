@@ -1,124 +1,120 @@
-# Development of Deepfakes Detection Model Using Deep Learning Framework
+# Deepfake Detection Model
 
 ## Overview
-
-This project is designed to detect fake videos by analyzing and classifying video frames. The solution utilizes a pre-trained **ResNeXt50_32x4d** model combined with an **LSTM** network to process video sequences. The system extracts frames, detects faces, and classifies videos as either **REAL** or **FAKE**. It is optimized to run on **Google Colab**, leveraging its GPU capabilities.
+This project implements a deep learning-based system for detecting deepfake videos. It uses a combination of EfficientNet-B3 and Transformer architecture to analyze facial features across video frames and classify videos as real or fake. The model achieves a 95% F1-score on the Celebrity Deepfake(V2) dataset. We use Streamlit to provide a user-friendly web interface for real-time video analysis and prediction.
 
 ## Features
+- **Video Processing**: Extracts and processes frames from videos for face detection
+- **Face Detection**: Uses MediaPipe for accurate face detection and cropping
+- **Data Augmentation**: Multiple augmentation techniques for a balanced dataset
+- **Deep Learning Model**: Combines EfficientNet-B3 with Transformer for temporal analysis
+- **Training Pipeline**: Complete training workflow with mixed precision training
+- **Inference System**: Streamlit-based web interface for real-time video analysis
+- **Performance Metrics**: Comprehensive evaluation metrics and visualizations
 
-- **Video Processing**: Extracts frames from videos and processes them for face detection.
-- **Face Detection**: Utilizes the **MediaPipe** library to detect faces within video frames.
-- **Deep Learning Model**: Employs a ResNeXt50_32x4d model and an LSTM network to classify video sequences.
-- **Model Training and Evaluation**: Includes functionality to train the model, validate its performance, and generate confusion matrices.
-- **Inference and Prediction**: Allows for prediction on new videos with confidence scoring and visualizations.
-- **Data Augmentation**: Enhances the dataset by applying various augmentation techniques to the real video data to improve model robustness.
-- **Face Extraction**: Utilizes a face extraction code to isolate faces from videos, creating a dataset specifically for training the model.
+## Model Architecture
+### EfficientNet-B3 + Transformer
 
-## Model Overview
+- **Feature Extractor**:  
+  Built on the EfficientNet-B3 backbone, this component efficiently extracts rich spatial features from each individual frame. It leverages a compound scaling method to balance network depth, width, and input resolution while being pre-trained on ImageNet to provide robust initial feature recognition.
 
-### ResNeXt50_32x4d
+- **Temporal Processing**:  
+  A Transformer encoder processes sequences of frame features, making use of positional encoding to keep track of the order of frames. The self-attention mechanism helps the model learn relationships between frames, capturing subtle temporal nuances that are essential for detecting deepfakes.
 
-**ResNeXt** is a powerful convolutional neural network architecture that improves upon the ResNet design. The key features include:
+- **Classification Head**:  
+  This multi-layer classifier is designed to consolidate spatial and temporal features into a final decision. It typically includes a reduction layer (e.g., linear transformation), followed by a GELU activation to smoothly handle non-linearity, and dropout layers to prevent overfitting. Additional techniques like layer normalization further stabilize training.
 
-- **Cardinality**: Introduces the concept of cardinality (the number of paths in the architecture) in addition to depth and width, allowing for increased model capacity without substantially increasing computational cost.
-- **Modular Design**: Built using a simple building block that allows for easy adjustments to the model's complexity.
-- **Performance**: Achieves excellent performance on various image classification tasks, making it suitable for feature extraction in video frames.
+- **Input Processing**:  
+  Designed to handle variable-length video sequences, this stage uses adaptive pooling to standardize the feature dimensions irrespective of sequence length. Pre-processing steps include resizing frames (e.g., to 112x112 pixels) and normalizing pixel intensities, while dynamic batching with padding ensures the model maintains temporal coherence across different video lengths.
 
-**ResNeXt50_32x4d** specifically denotes a 50-layer network with 32 groups in its convolutions, making it highly effective for extracting rich features from input images.
+### Key Components
 
-### LSTM (Long Short-Term Memory)
+- **Positional encoding for temporal information**:  
+  Integrates the temporal position of each frame into the model, ensuring the order and context are preserved. This aids the Transformer encoder in distinguishing the progression of frames, which is essential for capturing video dynamics.
 
-**LSTMs** are a type of recurrent neural network (RNN) designed to handle sequential data, such as video frames. Their main advantages include:
+- **Multi-head self-attention mechanism**:  
+  Allows the model to attend to various parts of the sequence simultaneously. This mechanism helps capture multiple dependencies among frames, enabling a more robust understanding of both local and global temporal relationships.
 
-- **Memory Cell**: Capable of learning long-term dependencies, allowing the model to remember information from earlier time steps while processing new data.
-- **Gated Mechanisms**: Use forget, input, and output gates to control the flow of information, helping to mitigate issues like vanishing gradients that occur in standard RNNs.
+- **Gradient clipping and layer normalization**:  
+  Gradient clipping limits the magnitude of gradients during backpropagation, preventing training issues like exploding gradients. Layer normalization standardizes the outputs of layers, leading to faster convergence and improved training stability across deep network layers.
 
-In this project, the LSTM network is used to analyze the temporal sequences of the extracted frames, enabling the model to recognize patterns and classify video sequences effectively.
+- **Mixed precision training support**:  
+  Combines 16-bit and 32-bit floating-point operations to reduce memory usage and speed up training. This technique leverages GPUs more efficiently while maintaining the necessary numerical stability for model convergence.
 
-### PyTorch Framework
 
-**PyTorch** is an open-source machine learning library widely used for deep learning applications. Key benefits include:
+## Frameworks and Tools
+- **PyTorch**: Deep learning framework
+- **MediaPipe**: Face detection and tracking
+- **Streamlit**: Web interface for model deployment
+- **OpenCV**: Video processing and augmentation
+- **Timm**: Pre-trained model library
 
-- **Dynamic Computation Graphs**: Allows for flexible model building and debugging, as the computation graph is created on-the-fly during runtime.
-- **Rich Ecosystem**: Offers extensive libraries and tools, including `torchvision` for image processing and `torchtext` for natural language processing.
-- **GPU Acceleration**: Facilitates seamless GPU usage for accelerated training and inference, making it ideal for computationally intensive tasks like deep learning.
 
-This project leverages PyTorch to implement the ResNeXt and LSTM components, providing a robust platform for training and evaluating the deepfake detection model.
+## Data Preparation
+### Face Detection and Cropping
+- Extract faces from videos using MediaPipe
+- Resize faces to 112x112 pixels
+- Create consistent-length sequences
 
-## Requirements
-
-- **Python Version**: 3.x
-- **Dependencies**: List of required libraries can be found in `requirements.txt`.
-
-## Setup
-
-### Install Dependencies
-
-Create a virtual environment (optional) and install the required libraries using:
-
-```bash
-pip install -r requirements.txt
-```
-
-### Prepare Data
-
-1. **Video Files**: Place your video files in the specified directory.
-2. **Face Detection**: The `process_videos` function extracts and saves frames containing faces using MediaPipe.
-3. **Model Weights**: Download and place the pre-trained model weights in the specified directory if necessary.
-4. **Update Paths**: Modify the paths in the code for video files, face detection, and model checkpoints.
+### Dataset Organization
+- Split videos into train/test sets
+- Create CSV files with labels
+- Balance dataset between real/fake classes
 
 ### Data Augmentation
+Implemented augmentation techniques:
+- Horizontal flipping
+- Random rotation (-15° to 15°)
+- Brightness adjustment
+- Contrast variation
+- Gaussian noise addition
+- Gaussian blur
 
-- The data augmentation code processes real videos to balance the dataset. It applies techniques such as horizontal flip, random rotation, brightness adjustment, contrast adjustment, adding Gaussian noise, and applying Gaussian blur. This is essential for improving model performance and generalization.
+## Model Training
+### Setup
+- Initialize EfficientNet-B3 with pre-trained weights
+- Configure Transformer encoder
+- Set up mixed precision training
 
-### Face Extraction
+### Training Process
+- Batch size: 8
+- Sequence length: 10-30 frames
+- Learning rate: 1e-6
+- Adam optimizer with weight decay
+- Early stopping based on F1-score
 
-- The face extraction code utilizes **MediaPipe** for face detection, isolating faces from video frames. It saves the detected faces as individual video files, ensuring that the model is trained on relevant data, focusing specifically on face features.
+### Monitoring
+- Loss and accuracy tracking
+- Confusion matrix generation
+- F1-score, precision, recall metrics
+
+## Prediction Interface
+The system includes a Streamlit web interface that:
+- Accepts video file uploads
+- Can try it with custom trained model using our training method
+- Processes videos in real-time
+- Displays confidence scores
+- Shows classification results
 
 ## Usage
+1. Install requirements:
+    ```sh
+    pip install -r requirements.txt
+    ```
+2. Run the Streamlit interface:
+    ```sh
+    streamlit run DeepfakeDetection.py
+    ```
+3. Upload a video and get predictions
 
-### Data Preparation
+## Model Performance
+- Accuracy: ~95%
+- F1-Score: ~95%
+- Real-time processing capability
+- Robust to various video qualities
 
-1. Process videos to extract frames and detect faces using the `process_videos` function.
-2. Use the `create_face_videos` function to save face-only videos.
-
-### Label CSV File
-
-Ensure you have a CSV file with labels corresponding to your videos. The CSV should have the following format:
-
-```csv
-file,label
-video1.mp4,REAL
-video2.mp4,FAKE
-```
-
-Upload this CSV file to your Google Drive and ensure it's in an accessible location, e.g., `/content/drive/MyDrive/file_names.csv`.
-
-### Model Training
-
-1. Set hyperparameters such as learning rate and number of epochs.
-2. Train the model using the `train_epoch` function and validate it using the `test` function.
-3. Save the trained model checkpoint.
-
-### Inference
-
-Load the trained model and use the `predict` function to classify new videos. Visualize the results using heatmaps and saved images.
-
-### Evaluation
-
-Generate plots for training and validation loss and accuracy. Review confusion matrices to assess model performance.
-
-## Code Structure
-
-- **Data Preparation**: Handles video frame extraction and face detection using MediaPipe.
-- **Data Augmentation**: Applies various techniques to enhance the training dataset.
-- **Face Extraction**: Isolates faces from videos to create a focused dataset for training.
-- **Model**: Defines the hybrid ResNeXt50_32x4d and LSTM network.
-- **Training and Evaluation**: Functions for training, validating, and visualizing model performance.
-- **Inference**: Implements prediction and result visualization.
-
-## Troubleshooting
-
-- **Ensure Paths**: Verify that all file paths and directories are correctly set in the code.
-- **Model Weights**: Confirm that the model weights are correctly placed and loaded.
-- **Dependency Issues**: Check for any library version conflicts and ensure all required libraries are installed.
+## Limitations
+- Requires clear facial visibility
+- Sensitive to extreme lighting conditions
+- Limited to processed deepfake detection
+- Memory-intensive for long videos
